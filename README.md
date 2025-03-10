@@ -7,14 +7,14 @@ A command-line interface (CLI) client for interacting with AGI Tools.
 You can install the package directly from GitHub using pip:
 
 ```bash
-pip install git+https://github.com/vsai23/agi-tools-client.git
+pip install git+https://github.com/AgintAI/agi-tools-client.git
 ```
 
 ## Configuration
 
 The client requires the following environment variables:
 
-- `DOCKER_BUILDER_API_URL`: The URL of the AGI Tools API (default: http://localhost:8000)
+- `DOCKER_BUILDER_API_URL`: The URL of the AGI Tools API
 - `AGINT_APIKEY`: Your AGI Tools API key
 
 You can set these in a `.env` file in your working directory:
