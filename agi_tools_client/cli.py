@@ -44,16 +44,7 @@ def fetch_openapi_spec() -> Dict[str, Any]:
         with httpx.Client(timeout=30.0) as client:
             resp = client.get(url)
             resp.raise_for_status()
-            spec_data = resp.json()
-
-            # Get spec path from env var or default to openapi.json
-            spec_path = os.getenv("OPENAPI_SPEC_PATH", "openapi.json")
-
-            # Save spec to file
-            with open(spec_path, "w") as f:
-                json.dump(spec_data, f, indent=2)
-
-            return spec_data
+            return resp.json()
     except httpx.HTTPError as e:
         logger.error(f"Failed to fetch OpenAPI spec: {str(e)}")
         raise typer.Exit(code=1)
@@ -66,6 +57,8 @@ def load_openapi_spec() -> Dict[str, Any]:
     """
     Load the OpenAPI spec. If spec_path is provided, load from file,
     otherwise fetch from the API endpoint.
+    
+    In the future set up a static openapi.json, in beta creates an additional point for stale spec
     """
     spec_path = os.getenv("OPENAPI_SPEC_PATH", "openapi.json")
     p = Path(spec_path)
