@@ -1,0 +1,7 @@
+[console_scripts]
+agi-tools = agi_tools_client.cli:main
+dagent = agi_tools_client.cli:dagent
+dagify = agi_tools_client.cli:dagify
+datagin = agi_tools_client.cli:datagin
+pagint = agi_tools_client.cli:pagint
+schemagin = agi_tools_client.cli:schemagin
