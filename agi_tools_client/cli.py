@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 import httpx
 import typer
 
+# Load environment variables from .env file
+load_dotenv(override=True)
+
 # Configure logging to suppress HTTPX logs
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
@@ -398,5 +401,4 @@ def clean_formatted_text(text: str) -> str:
 
 
 if __name__ == "__main__":
-    load_dotenv()   
     main()
