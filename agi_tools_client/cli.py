@@ -60,8 +60,6 @@ def load_openapi_spec() -> Dict[str, Any]:
     """
     Load the OpenAPI spec. If spec_path is provided, load from file,
     otherwise fetch from the API endpoint.
-    
-    In the future set up a static openapi.json, in beta creates an additional point for stale spec
     """
     spec_path = os.getenv("OPENAPI_SPEC_PATH", "openapi.json")
     p = Path(spec_path)
@@ -137,6 +135,16 @@ def create_command_function(
 
         # Add agint_apikey to the body
         body["agint_apikey"] = os.getenv("AGINT_APIKEY")
+
+        # Check for piped input and add to body
+        if not sys.stdin.isatty():
+            try:
+                stdin_data = sys.stdin.read().strip()
+                body["stdin"] = stdin_data
+                if os.getenv("DEBUG") == "1":
+                    logger.debug(f"Added stdin data (length={len(stdin_data)})")
+            except Exception as e:
+                logger.error(f"Error reading from stdin: {e}")
 
         # Log request details if DEBUG=1
         if os.getenv("DEBUG") == "1":
@@ -225,7 +233,7 @@ def create_command_function(
     parameters = []
     for prop_name, prop_spec in properties.items():
         if (
-            prop_name != "agint_apikey"
+            prop_name != "agint_apikey" and prop_name != "stdin"
         ):  # Skip agint_apikey as it's handled automatically
             param_obj = create_parameter(prop_name, prop_spec)
             parameters.append(
