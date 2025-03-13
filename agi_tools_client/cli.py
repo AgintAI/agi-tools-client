@@ -120,6 +120,46 @@ def create_parameter(
         )
 
 
+def read_file_like(path: str) -> str:
+    """
+    Helper to read content from files, including /dev/fd paths and regular files.
+    
+    Args:
+        path: The path to read from. Can be a regular file path or /dev/fd/* path
+        
+    Returns:
+        The contents of the file if readable, otherwise returns the original path
+    """
+    if not isinstance(path, str):
+        return str(path)
+        
+    try:
+        # Handle process substitution and regular files
+        if path.startswith("/dev/fd/") or os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    if os.getenv("DEBUG") == "1":
+                        logger.debug(f"Successfully read content from {path}")
+                    return content
+            except (IOError, OSError) as e:
+                logger.debug(f"Failed to read from {path}: {e}")
+                return path
+            except UnicodeDecodeError as e:
+                logger.debug(f"Unicode decode error reading {path}: {e}. Trying with latin-1")
+                # Fallback to latin-1 encoding if utf-8 fails
+                try:
+                    with open(path, "r", encoding="latin-1") as f:
+                        return f.read()
+                except Exception as e2:
+                    logger.debug(f"Failed to read with latin-1 encoding: {e2}")
+                    return path
+        return path
+    except Exception as e:
+        logger.debug(f"Error processing path {path}: {e}")
+        return path
+
+
 def create_command_function(
     path_str: str, method: str, operation: Dict[str, Any], spec: Dict[str, Any]
 ):
@@ -130,8 +170,15 @@ def create_command_function(
         api_url = os.getenv("DOCKER_BUILDER_API_URL", "http://localhost:8000")
         url = f"{api_url}{path_str}"
 
+        # Pre-process all arguments that might be file paths
+        processed_kwargs = {
+            k: read_file_like(v) if isinstance(v, str) else v
+            for k, v in kwargs.items()
+            if v is not None
+        }
+
         # Filter out None values
-        body = {k: v for k, v in kwargs.items() if v is not None}
+        body = {k: v for k, v in processed_kwargs.items() if v is not None}
 
         # Add agint_apikey to the body
         body["agint_apikey"] = os.getenv("AGINT_APIKEY")
